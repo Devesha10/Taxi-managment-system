@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="TaxiOS — Professional Taxi Fleet Management System">
+<meta name="author" content="TaxiOS Project Team">
+<title>TaxiOS — Fleet Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Nunito+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:        #080c14;
+  --bg2:       #0d1220;
+  --surface:   #111827;
+  --surface2:  #172035;
+  --border:    #1e2d47;
+  --border2:   #253550;
+  --muted:     #2a3a58;
+  --dim:       #4a6080;
+  --mid:       #7a92b8;
+  --text:      #c4d4ed;
+  --bright:    #e8f0ff;
+  --gold:      #d4a94a;
+  --gold-dim:  rgba(212,169,74,.12);
+  --gold-glow: rgba(212,169,74,.3);
+  --emerald:   #10b981;
+  --em-dim:    rgba(16,185,129,.12);
+  --rose:      #f43f5e;
+  --rose-dim:  rgba(244,63,94,.12);
+  --sky:       #38bdf8;
+  --sky-dim:   rgba(56,189,248,.12);
+  --amber:     #f59e0b;
+  --amb-dim:   rgba(245,158,11,.12);
+  --violet:    #8b5cf6;
+  --sw: 260px;
+  --hh: 64px;
+  --r:  12px;
+  --r2: 8px;
+  --t:  .2s cubic-bezier(.4,0,.2,1);
+}
+
+/* ═══════════════════════════════════════════
+   RESET + BASE
+═══════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--muted);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--dim)}
+*{scrollbar-width:thin;scrollbar-color:var(--muted) transparent}
+
+body {
+  font-family:'Nunito Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  display:flex;
+  overflow:hidden;
+  font-size:13.5px;
+}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+.sidebar {
+  width:var(--sw);
+  height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  left:0;top:0;bottom:0;
+  z-index:200;
+  overflow-y:auto;
+}
+
+.sb-logo {
+  padding:24px 22px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-shrink:0;
+}
+
+.sb-logo-icon {
+  width:40px;height:40px;
+  background:linear-gradient(135deg,var(--gold),#b8882d);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+  box-shadow:0 4px 16px var(--gold-glow);
+}
+
+.sb-logo-name {
+  font-family:'Syne',sans-serif;
+  font-size:20px;
+  font-weight:800;
+  color:var(--bright);
+  letter-spacing:.5px;
+  line-height:1;
+}
+
+.sb-logo-tag {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  color:var(--dim);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-top:2px;
+}
+
+.sb-section {
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+}
+
+.sb-label {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:2.5px;
+  color:var(--dim);
+  text-transform:uppercase;
+  padding:10px 22px 4px;
+}
+
+.sb-item {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 22px;
+  cursor:pointer;
+  transition:var(--t);
+  border-left:2px solid transparent;
+  font-size:13px;
+  font-weight:500;
+  color:var(--mid);
+  position:relative;
+}
+
+.sb-item:hover {
+  background:rgba(255,255,255,.03);
+  color:var(--text);
+}
+
+.sb-item.active {
+  background:var(--gold-dim);
+  border-left-color:var(--gold);
+  color:var(--gold);
+}
+
+.sb-item-icon {
+  width:20px;
+  text-align:center;
+  font-size:14px;
+  flex-shrink:0;
+}
+
+.sb-item-label {flex:1}
+
+.sb-badge {
+  background:var(--rose);
+  color:white;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  padding:2px 6px;
+  border-radius:99px;
+  font-weight:500;
+}
+
+.sb-footer {
+  margin-top:auto;
+  padding:16px 22px;
+  border-top:1px solid var(--border);
+}
+
+.sb-status {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--dim);
+}
+
+.sb-dot {
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--emerald);
+  box-shadow:0 0 8px var(--emerald);
+  animation:pulse 2s infinite;
+  flex-shrink:0;
+}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ═══════════════════════════════════════════
+   MAIN AREA
+═══════════════════════════════════════════ */
+.main {
+  margin-left:var(--sw);
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  overflow:hidden;
+}
+
+/* TOPBAR */
+.topbar {
+  height:var(--hh);
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 28px;
+  gap:16px;
+  flex-shrink:0;
+  position:relative;
+}
+
+.topbar::after {
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,var(--gold),transparent 60%);
+  opacity:.4;
+}
+
+.topbar-titles {}
+
+.topbar-page {
+  font-family:'Syne',sans-serif;
+  font-size:18px;
+  font-weight:700;
+  color:var(--bright);
+  letter-spacing:.3px;
+}
+
+.topbar-crumb {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--dim);
+  margin-top:1px;
+}
+
+.topbar-crumb-active {color:var(--gold)}
+
+.topbar-right {
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.topbar-chip {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--mid);
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:5px 12px;
+  border-radius:6px;
+}
+
+/* CONTENT */
+.content {
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:28px 32px;
+  height:calc(100vh - var(--hh));
+}
+
+/* PAGE TRANSITIONS */
+.page{display:none;animation:slideUp .25s cubic-bezier(.4,0,.2,1)}
+.page.active{display:block}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ═══════════════════════════════════════════
+   PAGE HEADER
+═══════════════════════════════════════════ */
+.page-header {
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  margin-bottom:28px;
+}
+
+.page-header-left {}
+
+.page-title {
+  font-family:'Syne',sans-serif;
+  font-size:26px;
+  font-weight:700;
+  color:var(--bright);
+  letter-spacing:-.3px;
+  line-height:1;
+}
+
+.page-subtitle {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  color:var(--dim);
+  margin-top:5px;
+}
+
+/* ═══════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════ */
+.btn {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:9px 20px;
+  border-radius:var(--r2);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  border:none;
+  transition:var(--t);
+  font-family:'Nunito Sans',sans-serif;
+  white-space:nowrap;
+}
+
+.btn-gold {
+  background:linear-gradient(135deg,var(--gold),#b8882d);
+  color:#0d0a00;
+  box-shadow:0 4px 16px rgba(212,169,74,.25);
+}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,169,74,.35)}
+.btn-gold:active{transform:none}
+
+.btn-ghost {
+  background:transparent;
+  border:1px solid var(--border2);
+  color:var(--mid);
+}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--dim)}
+
+.btn-danger {
+  background:var(--rose-dim);
+  border:1px solid var(--rose);
+  color:var(--rose);
+}
+.btn-danger:hover{background:var(--rose);color:white}
+
+.btn-sm{padding:5px 12px;font-size:11.5px}
+.btn-xs{padding:3px 9px;font-size:11px}
+
+/* ═══════════════════════════════════════════
+   KPI CARDS
+═══════════════════════════════════════════ */
+.kpi-grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-bottom:24px;
+}
+
+.kpi-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:20px 22px;
+  position:relative;
+  overflow:hidden;
+  transition:var(--t);
+}
+
+.kpi-card::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+}
+
+.kpi-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+
+.kpi-card.gold::before{background:linear-gradient(90deg,var(--gold),transparent)}
+.kpi-card.green::before{background:linear-gradient(90deg,var(--emerald),transparent)}
+.kpi-card.red::before{background:linear-gradient(90deg,var(--rose),transparent)}
+.kpi-card.blue::before{background:linear-gradient(90deg,var(--sky),transparent)}
+
+.kpi-icon {
+  width:36px;height:36px;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  margin-bottom:14px;
+}
+
+.kpi-card.gold .kpi-icon{background:var(--gold-dim);color:var(--gold)}
+.kpi-card.green .kpi-icon{background:var(--em-dim);color:var(--emerald)}
+.kpi-card.red .kpi-icon{background:var(--rose-dim);color:var(--rose)}
+.kpi-card.blue .kpi-icon{background:var(--sky-dim);color:var(--sky)}
+
+.kpi-label {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--dim);
+  margin-bottom:6px;
+}
+
+.kpi-value {
+  font-family:'Syne',sans-serif;
+  font-size:30px;
+  font-weight:700;
+  color:var(--bright);
+  line-height:1;
+  margin-bottom:6px;
+}
+
+.kpi-sub {
+  font-size:11.5px;
+  color:var(--mid);
+}
+
+.kpi-sub .up{color:var(--emerald)}
+.kpi-sub .down{color:var(--rose)}
+
+/* ═══════════════════════════════════════════
+   CARD / PANEL
+═══════════════════════════════════════════ */
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+
+.card-header {
+  padding:16px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.card-title {
+  font-family:'Syne',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  color:var(--bright);
+  flex:1;
+}
+
+.card-count {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--dim);
+  background:var(--muted);
+  padding:2px 8px;
+  border-radius:99px;
+}
+
+/* ═══════════════════════════════════════════
+   TABLES
+═══════════════════════════════════════════ */
+.table-wrap{overflow-x:auto}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+
+thead th {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;
+  letter-spacing:1.3px;
+  text-transform:uppercase;
+  color:var(--dim);
+  text-align:left;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  font-weight:400;
+  white-space:nowrap;
+  background:var(--surface2);
+}
+
+tbody tr {
+  border-bottom:1px solid rgba(30,45,71,.6);
+  transition:var(--t);
+}
+
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+
+tbody td {
+  padding:11px 16px;
+  color:var(--text);
+  vertical-align:middle;
+  white-space:nowrap;
+}
+
+td.muted{color:var(--mid);font-size:12px}
+td.code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mid)}
+
+/* ═══════════════════════════════════════════
+   BADGES
+═══════════════════════════════════════════ */
+.badge {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:3px 10px;
+  border-radius:99px;
+  font-size:10.5px;
+  font-weight:600;
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:.3px;
+  white-space:nowrap;
+}
+
+.badge::before{content:'●';font-size:6px}
+
+.b-green{background:var(--em-dim);color:var(--emerald)}
+.b-red{background:var(--rose-dim);color:var(--rose)}
+.b-gold{background:var(--gold-dim);color:var(--gold)}
+.b-blue{background:var(--sky-dim);color:var(--sky)}
+.b-amber{background:var(--amb-dim);color:var(--amber)}
+.b-violet{background:rgba(139,92,246,.12);color:var(--violet)}
+.b-muted{background:var(--muted);color:var(--mid)}
+.b-rose{background:var(--rose-dim);color:var(--rose)}
+
+/* ═══════════════════════════════════════════
+   GRID LAYOUTS
+═══════════════════════════════════════════ */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-bottom:20px}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+
+/* ═══════════════════════════════════════════
+   ACTIVITY LIST
+═══════════════════════════════════════════ */
+.act-item {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:11px 20px;
+  border-bottom:1px solid rgba(30,45,71,.5);
+  font-size:12.5px;
+  transition:var(--t);
+}
+
+.act-item:last-child{border-bottom:none}
+.act-item:hover{background:rgba(255,255,255,.02)}
+
+.act-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.act-text{flex:1;color:var(--text)}
+.act-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim)}
+
+/* ═══════════════════════════════════════════
+   FILTER BAR
+═══════════════════════════════════════════ */
+.filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+
+.search-box {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:8px 14px;
+  width:260px;
+  transition:var(--t);
+}
+
+.search-box:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+.search-box-icon{color:var(--dim);font-size:13px;flex-shrink:0}
+
+.search-box input {
+  background:none;
+  border:none;
+  outline:none;
+  color:var(--text);
+  font-size:13px;
+  font-family:'Nunito Sans',sans-serif;
+  width:100%;
+}
+
+.search-box input::placeholder{color:var(--dim)}
+
+.filter-select {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:8px 14px;
+  color:var(--text);
+  font-size:13px;
+  font-family:'Nunito Sans',sans-serif;
+  outline:none;
+  cursor:pointer;
+  transition:var(--t);
+}
+
+.filter-select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+.filter-select option{background:var(--surface)}
+
+/* ═══════════════════════════════════════════
+   DRIVER CARDS
+═══════════════════════════════════════════ */
+.driver-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+
+.driver-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:20px;
+  transition:var(--t);
+  position:relative;
+}
+
+.driver-card::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent);
+  opacity:.5;
+}
+
+.driver-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,0,0,.3)}
+
+.driver-av {
+  width:48px;height:48px;
+  border-radius:50%;
+  background:var(--gold-dim);
+  border:2px solid rgba(212,169,74,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;
+  font-size:20px;
+  font-weight:700;
+  color:var(--gold);
+  margin-bottom:14px;
+}
+
+.driver-name {
+  font-family:'Syne',sans-serif;
+  font-size:15px;
+  font-weight:600;
+  color:var(--bright);
+  margin-bottom:2px;
+}
+
+.driver-meta {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--dim);
+  margin-bottom:12px;
+}
+
+.driver-stats {
+  display:flex;
+  gap:0;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+}
+
+.driver-stat{flex:1;text-align:center;border-right:1px solid var(--border)}
+.driver-stat:last-child{border-right:none}
+
+.ds-val {
+  font-family:'Syne',sans-serif;
+  font-size:16px;
+  font-weight:700;
+  color:var(--bright);
+  line-height:1;
+}
+
+.ds-lbl {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  color:var(--dim);
+  letter-spacing:.5px;
+  margin-top:3px;
+}
+
+.card-actions{display:flex;gap:6px;margin-top:14px}
+.action-btns{display:flex;gap:6px}
+
+/* ═══════════════════════════════════════════
+   COMPANY CARDS
+═══════════════════════════════════════════ */
+.co-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:18px 14px;
+  text-align:center;
+  transition:var(--t);
+}
+
+.co-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+
+.co-logo {
+  width:44px;height:44px;
+  border-radius:10px;
+  margin:0 auto 12px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;
+  font-size:13px;
+  font-weight:700;
+}
+
+.co-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--bright);margin-bottom:3px}
+.co-city{font-size:11.5px;color:var(--dim)}
+
+/* ═══════════════════════════════════════════
+   ROUTE VISUAL
+═══════════════════════════════════════════ */
+.route-vis{display:flex;align-items:center;gap:8px}
+
+.rp {
+  background:var(--gold-dim);
+  border:1px solid rgba(212,169,74,.4);
+  color:var(--gold);
+  padding:3px 10px;
+  border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  font-weight:500;
+}
+
+.rl{flex:1;height:1px;background:linear-gradient(90deg,rgba(212,169,74,.4),transparent);position:relative;min-width:24px}
+.rl::after{content:'›';position:absolute;right:-5px;top:-8px;color:rgba(212,169,74,.6);font-size:14px}
+
+/* ═══════════════════════════════════════════
+   BAR CHART
+═══════════════════════════════════════════ */
+.bar-row{margin-bottom:14px}
+.bar-info{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;color:var(--mid)}
+.bar-track{background:var(--muted);border-radius:99px;height:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+
+/* ═══════════════════════════════════════════
+   STARS
+═══════════════════════════════════════════ */
+.stars{color:var(--gold);font-size:12px;letter-spacing:1.5px}
+.stars-empty{color:var(--muted)}
+
+/* ═══════════════════════════════════════════
+   SECTION DIVIDER
+═══════════════════════════════════════════ */
+.sec-div {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--dim);
+  margin:24px 0 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.sec-div::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ═══════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════ */
+.overlay {
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.8);
+  z-index:1000;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(6px);
+  padding:20px;
+}
+
+.overlay.open{display:flex}
+
+.modal {
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  width:100%;
+  max-width:600px;
+  max-height:90vh;
+  overflow-y:auto;
+  animation:modalPop .22s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+
+.modal::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent 60%);
+  border-radius:16px 16px 0 0;
+}
+
+@keyframes modalPop{from{opacity:0;transform:scale(.9) translateY(16px)}to{opacity:1;transform:none}}
+
+.modal-head {
+  padding:20px 24px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  background:var(--surface);
+  z-index:1;
+  border-radius:16px 16px 0 0;
+}
+
+.modal-head-title {
+  font-family:'Syne',sans-serif;
+  font-size:16px;
+  font-weight:700;
+  color:var(--bright);
+}
+
+.modal-head-subtitle {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;
+  color:var(--dim);
+  margin-top:2px;
+}
+
+.modal-x {
+  background:var(--muted);
+  border:none;
+  color:var(--mid);
+  width:28px;height:28px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--t);
+}
+
+.modal-x:hover{background:var(--rose);color:white}
+
+/* FORM */
+.form-body{padding:20px 24px}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-row.single{grid-template-columns:1fr}
+.form-row.triple{grid-template-columns:1fr 1fr 1fr}
+
+.field{display:flex;flex-direction:column;gap:6px}
+
+.field label {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:1px;
+  color:var(--dim);
+  text-transform:uppercase;
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+.req{color:var(--rose);font-size:12px}
+
+.field input,
+.field select,
+.field textarea {
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:9px 13px;
+  color:var(--text);
+  font-family:'Nunito Sans',sans-serif;
+  font-size:13px;
+  outline:none;
+  transition:var(--t);
+  width:100%;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px var(--gold-dim);
+  background:var(--bg2);
+}
+
+.field input::placeholder{color:var(--dim)}
+.field select option{background:var(--surface2)}
+.field textarea{resize:vertical;min-height:80px;font-size:13px}
+
+.field input.err,.field select.err{border-color:var(--rose)}
+
+.form-foot {
+  padding:16px 24px;
+  border-top:1px solid var(--border);
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  align-items:center;
+  background:var(--surface);
+  border-radius:0 0 16px 16px;
+  position:sticky;
+  bottom:0;
+}
+
+.form-err-msg {
+  flex:1;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  color:var(--rose);
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+.toast-wrap {
+  position:fixed;
+  bottom:24px;right:24px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  pointer-events:none;
+}
+
+.toast {
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  padding:12px 18px;
+  font-size:13px;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:260px;
+  max-width:340px;
+  animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  pointer-events:all;
+}
+
+@keyframes toastIn{from{opacity:0;transform:translateX(24px) scale(.95)}to{opacity:1;transform:none}}
+
+.toast-icon{font-size:16px;flex-shrink:0}
+.toast-msg{flex:1;font-weight:500}
+.toast.t-success{border-left:3px solid var(--emerald)}
+.toast.t-error{border-left:3px solid var(--rose)}
+.toast.t-info{border-left:3px solid var(--sky)}
+
+/* ═══════════════════════════════════════════
+   SQL QUERY CARDS
+═══════════════════════════════════════════ */
+.qcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+
+.qcard-head {
+  padding:14px 20px;
+  background:var(--surface2);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:14px;
+  cursor:pointer;
+  user-select:none;
+  transition:var(--t);
+}
+
+.qcard-head:hover{background:rgba(255,255,255,.03)}
+
+.qcard-num {
+  font-family:'Syne',sans-serif;
+  font-size:24px;
+  font-weight:800;
+  color:var(--gold);
+  line-height:1;
+  width:30px;
+}
+
+.qcard-title{font-weight:600;font-size:13.5px;color:var(--bright)}
+.qcard-desc{font-size:11.5px;color:var(--dim);margin-top:2px}
+.qcard-chev{margin-left:auto;color:var(--dim);transition:var(--t);font-size:13px}
+.qcard.open .qcard-chev{transform:rotate(180deg)}
+
+.qcard-body{display:none}
+.qcard.open .qcard-body{display:block}
+
+.sql-block {
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:16px 20px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  line-height:1.8;
+  color:var(--mid);
+  overflow-x:auto;
+  white-space:pre;
+}
+
+.kw{color:#c084fc}
+.fn{color:var(--sky)}
+.str{color:var(--emerald)}
+.cmt{color:var(--dim);font-style:italic}
+
+/* ═══════════════════════════════════════════
+   BLACKLIST ALERT BAR
+═══════════════════════════════════════════ */
+.alert-bar {
+  background:var(--rose-dim);
+  border:1px solid rgba(244,63,94,.3);
+  border-radius:var(--r2);
+  padding:12px 18px;
+  margin-bottom:20px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:13px;
+  color:var(--rose);
+}
+
+/* ═══════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════ */
+.empty {
+  padding:48px 20px;
+  text-align:center;
+  color:var(--dim);
+}
+
+.empty-icon{font-size:32px;margin-bottom:10px}
+.empty-text{font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">🚕</div>
+    <div>
+      <div class="sb-logo-name">TaxiOS</div>
+      <div class="sb-logo-tag">Fleet Management</div>
+    </div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Overview</div>
+    <div class="sb-item active" onclick="nav('dashboard')"><span class="sb-item-icon">▪</span><span class="sb-item-label">Dashboard</span></div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Operations</div>
+    <div class="sb-item" onclick="nav('rides')"><span class="sb-item-icon">🛣</span><span class="sb-item-label">Rides</span></div>
+    <div class="sb-item" onclick="nav('routes')"><span class="sb-item-icon">🗺</span><span class="sb-item-label">Routes</span></div>
+    <div class="sb-item" onclick="nav('payments')"><span class="sb-item-icon">💳</span><span class="sb-item-label">Payments</span></div>
+    <div class="sb-item" onclick="nav('feedback')"><span class="sb-item-icon">⭐</span><span class="sb-item-label">Feedback</span></div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Fleet</div>
+    <div class="sb-item" onclick="nav('drivers')"><span class="sb-item-icon">👤</span><span class="sb-item-label">Drivers</span></div>
+    <div class="sb-item" onclick="nav('vehicles')"><span class="sb-item-icon">🚗</span><span class="sb-item-label">Vehicles</span></div>
+    <div class="sb-item" onclick="nav('companies')"><span class="sb-item-icon">🏢</span><span class="sb-item-label">Companies</span></div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Customers</div>
+    <div class="sb-item" onclick="nav('customers')"><span class="sb-item-icon">👥</span><span class="sb-item-label">Customers</span></div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Safety</div>
+    <div class="sb-item" onclick="nav('accidents')"><span class="sb-item-icon">⚠️</span><span class="sb-item-label">Accidents</span></div>
+    <div class="sb-item" onclick="nav('blacklist')"><span class="sb-item-icon">🚫</span><span class="sb-item-label">Blacklist</span></div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Analytics</div>
+    <div class="sb-item" onclick="nav('queries')"><span class="sb-item-icon">📊</span><span class="sb-item-label">SQL Queries</span></div>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-status">
+      <div class="sb-dot"></div>
+      <span>taxi_db · MySQL 8.0</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-titles">
+      <div class="topbar-page" id="tbPage">Dashboard</div>
+      <div class="topbar-crumb">TaxiOS › <span class="topbar-crumb-active" id="tbCrumb">Overview</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-chip" id="tbChip">taxi_db connected</div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ═══════ DASHBOARD ═══════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Fleet Overview</div>
+          <div class="page-subtitle">Real-time summary across all entities</div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card gold">
+          <div class="kpi-icon">🛣</div>
+          <div class="kpi-label">Total Rides</div>
+          <div class="kpi-value" id="dk-rides">5</div>
+          <div class="kpi-sub"><span class="up" id="dk-comp">3 completed</span></div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-icon">₹</div>
+          <div class="kpi-label">Revenue</div>
+          <div class="kpi-value" id="dk-rev">₹1,050</div>
+          <div class="kpi-sub"><span class="up" id="dk-succ">3 successful</span></div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-icon">👤</div>
+          <div class="kpi-label">Active Drivers</div>
+          <div class="kpi-value" id="dk-drv">5</div>
+          <div class="kpi-sub"><span class="up" id="dk-avail">3 available</span></div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-icon">🚫</div>
+          <div class="kpi-label">Blacklisted</div>
+          <div class="kpi-value" id="dk-bl">5</div>
+          <div class="kpi-sub"><span class="down">Requires review</span></div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Rides</div>
+            <button class="btn btn-ghost btn-sm" onclick="nav('rides')">View all →</button>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr><th>ID</th><th>Driver</th><th>Customer</th><th>Status</th><th>Dist</th></tr></thead>
+            <tbody id="dk-rides-tbody"></tbody></table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Driver Status</div></div>
+          <div id="dk-driver-status"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Payments</div></div>
+          <div style="padding:18px" id="dk-pay-break"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Recent Feedback</div></div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Ride</th><th>Rating</th><th>Stars</th><th>Comment</th></tr></thead>
+            <tbody id="dk-fb-tbody"></tbody></table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Safety Alerts</div></div>
+          <div id="dk-alerts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ RIDES ═══════ -->
+    <div class="page" id="page-rides">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Rides</div>
+          <div class="page-subtitle" id="rides-sub">5 total rides in database</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('ride')">＋ New Ride</button>
+      </div>
+      <div class="filter-bar">
+        <div class="search-box"><span class="search-box-icon">⌕</span><input id="ride-search" placeholder="Search rides…" oninput="renderRides()"></div>
+        <select class="filter-select" id="ride-sf" onchange="renderRides()">
+          <option value="">All Status</option><option>Completed</option><option>Ongoing</option><option>Cancelled</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>Ride ID</th><th>Driver</th><th>Customer</th><th>Status</th><th>Pickup</th><th>Drop</th><th>Distance</th><th>Start Time</th><th>Actions</th></tr></thead>
+          <tbody id="rides-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ ROUTES ═══════ -->
+    <div class="page" id="page-routes">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Routes</div>
+          <div class="page-subtitle" id="routes-sub">5 routes defined</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('route')">＋ Add Route</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>Route ID</th><th>From → To</th><th>Est. Time</th><th>Distance</th><th>Actions</th></tr></thead>
+          <tbody id="routes-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ PAYMENTS ═══════ -->
+    <div class="page" id="page-payments">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Payments</div>
+          <div class="page-subtitle" id="pay-sub">5 transactions</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('payment')">＋ Add Payment</button>
+      </div>
+      <div class="kpi-grid" id="pay-kpis"></div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>ID</th><th>Ride</th><th>Amount</th><th>Method</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="pay-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ FEEDBACK ═══════ -->
+    <div class="page" id="page-feedback">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Feedback</div>
+          <div class="page-subtitle" id="fb-sub">5 ratings</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('feedback')">＋ Add Feedback</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>ID</th><th>Ride</th><th>Rating</th><th>Stars</th><th>Comment</th><th>Actions</th></tr></thead>
+          <tbody id="fb-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ DRIVERS ═══════ -->
+    <div class="page" id="page-drivers">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Drivers</div>
+          <div class="page-subtitle" id="drv-sub">5 registered drivers</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('driver')">＋ Add Driver</button>
+      </div>
+      <div class="driver-grid" id="drv-cards"></div>
+      <div class="sec-div">All Records</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>ID</th><th>Name</th><th>Age</th><th>License</th><th>Joined</th><th>Status</th><th>City</th><th>Phone</th><th>Actions</th></tr></thead>
+          <tbody id="drv-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ VEHICLES ═══════ -->
+    <div class="page" id="page-vehicles">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Vehicles</div>
+          <div class="page-subtitle" id="veh-sub">5 vehicles</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('vehicle')">＋ Add Vehicle</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>ID</th><th>Reg No</th><th>Model</th><th>Fuel</th><th>Capacity</th><th>Status</th><th>Insurance</th><th>Driver</th><th>Actions</th></tr></thead>
+          <tbody id="veh-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ COMPANIES ═══════ -->
+    <div class="page" id="page-companies">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Companies</div>
+          <div class="page-subtitle" id="co-sub">5 registered companies</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('company')">＋ Add Company</button>
+      </div>
+      <div class="grid-5" id="co-cards"></div>
+      <div class="sec-div">Employee Assignments</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>Company</th><th>Reg No</th><th>City</th><th>Driver</th><th>License</th><th>Driver Status</th></tr></thead>
+          <tbody id="co-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ CUSTOMERS ═══════ -->
+    <div class="page" id="page-customers">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Customers</div>
+          <div class="page-subtitle" id="cust-sub">5 registered customers</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('customer')">＋ Add Customer</button>
+      </div>
+      <div class="filter-bar">
+        <div class="search-box"><span class="search-box-icon">⌕</span><input id="cust-search" placeholder="Search customers…" oninput="renderCustomers()"></div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>DOB</th><th>City</th><th>Phone</th><th>Rides</th><th>Actions</th></tr></thead>
+          <tbody id="cust-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ ACCIDENTS ═══════ -->
+    <div class="page" id="page-accidents">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Accident Reports</div>
+          <div class="page-subtitle" id="acc-sub">5 filed reports</div>
+        </div>
+        <button class="btn btn-danger" onclick="openModal('accident')">＋ File Report</button>
+      </div>
+      <div class="kpi-grid" id="acc-kpis"></div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>Report ID</th><th>Date</th><th>Driver</th><th>Severity</th><th>Location</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody id="acc-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ BLACKLIST ═══════ -->
+    <div class="page" id="page-blacklist">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Blacklist Records</div>
+          <div class="page-subtitle" id="bl-sub">5 flagged records</div>
+        </div>
+        <button class="btn btn-danger" onclick="openModal('blacklist')">＋ Flag Record</button>
+      </div>
+      <div class="alert-bar">
+        <span style="font-size:18px">⚠</span>
+        <div><strong>Administrator Warning —</strong> The following drivers have been flagged. Review each record carefully before reinstating.</div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>Record ID</th><th>Date Flagged</th><th>Reason</th><th>Balance ID</th><th>Report ID</th><th>Actions</th></tr></thead>
+          <tbody id="bl-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ SQL QUERIES ═══════ -->
+    <div class="page" id="page-queries">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">SQL Queries</div>
+          <div class="page-subtitle">5 analytical queries — results update live with your data</div>
+        </div>
+      </div>
+
+      <div class="qcard" id="qc1">
+        <div class="qcard-head" onclick="tQ('qc1')">
+          <div class="qcard-num">01</div>
+          <div><div class="qcard-title">Cash Payment Drivers</div><div class="qcard-desc">Drivers whose rides were paid via Cash</div></div>
+          <div class="qcard-chev">▾</div>
+        </div>
+        <div class="qcard-body">
+          <div class="sql-block"><span class="kw">SELECT</span> D.D_name, D.license_no, R.ride_status, P.payment_method
+<span class="kw">FROM</span> Driver D
+<span class="kw">JOIN</span> Ride R <span class="kw">ON</span> D.Driver_id = R.Driver_id
+<span class="kw">JOIN</span> Payment P <span class="kw">ON</span> R.Ride_id = P.Ride_id
+<span class="kw">WHERE</span> P.payment_method = <span class="str">'Cash'</span>;</div>
+          <div class="table-wrap"><table><thead><tr><th>Driver Name</th><th>License No</th><th>Ride Status</th><th>Method</th></tr></thead><tbody id="q1-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="qcard" id="qc2">
+        <div class="qcard-head" onclick="tQ('qc2')">
+          <div class="qcard-num">02</div>
+          <div><div class="qcard-title">Above-Average Earnings</div><div class="qcard-desc">Drivers whose total payment exceeds fleet average (subquery)</div></div>
+          <div class="qcard-chev">▾</div>
+        </div>
+        <div class="qcard-body">
+          <div class="sql-block"><span class="kw">SELECT</span> D.D_name, <span class="fn">SUM</span>(P.amount) <span class="kw">AS</span> total_earnings
+<span class="kw">FROM</span> Driver D
+<span class="kw">JOIN</span> Ride R <span class="kw">ON</span> D.Driver_id = R.Driver_id
+<span class="kw">JOIN</span> Payment P <span class="kw">ON</span> R.Ride_id = P.Ride_id
+<span class="kw">GROUP BY</span> D.Driver_id
+<span class="kw">HAVING</span> <span class="fn">SUM</span>(P.amount) &gt; (<span class="kw">SELECT</span> <span class="fn">AVG</span>(t) <span class="kw">FROM</span> (...) sub);</div>
+          <div class="table-wrap"><table><thead><tr><th>Driver</th><th>Total Earned</th><th>vs Fleet Avg</th></tr></thead><tbody id="q2-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="qcard" id="qc3">
+        <div class="qcard-head" onclick="tQ('qc3')">
+          <div class="qcard-num">03</div>
+          <div><div class="qcard-title">Universal Driver Profile — VIEW</div><div class="qcard-desc">Aggregated view: vehicle, avg rating, accident count per driver</div></div>
+          <div class="qcard-chev">▾</div>
+        </div>
+        <div class="qcard-body">
+          <div class="sql-block"><span class="kw">CREATE VIEW</span> Universal_Driver_Profile <span class="kw">AS</span>
+<span class="kw">SELECT</span> D.D_name, V.model, <span class="fn">AVG</span>(F.rating) <span class="kw">AS</span> avg_rating, <span class="fn">COUNT</span>(A.Report_id) <span class="kw">AS</span> accidents
+<span class="kw">FROM</span> Driver D
+<span class="kw">LEFT JOIN</span> Vehicle V <span class="kw">ON</span> D.Driver_id = V.Driver_id
+<span class="kw">LEFT JOIN</span> Ride R <span class="kw">ON</span> D.Driver_id = R.Driver_id
+<span class="kw">LEFT JOIN</span> Feedback F <span class="kw">ON</span> R.Ride_id = F.Ride_id
+<span class="kw">LEFT JOIN</span> Accident_Report A <span class="kw">ON</span> D.Driver_id = A.Driver_id
+<span class="kw">GROUP BY</span> D.Driver_id;</div>
+          <div class="table-wrap"><table><thead><tr><th>Driver</th><th>Vehicle Model</th><th>Avg Rating</th><th>Accidents</th></tr></thead><tbody id="q3-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="qcard" id="qc4">
+        <div class="qcard-head" onclick="tQ('qc4')">
+          <div class="qcard-num">04</div>
+          <div><div class="qcard-title">Customer Ride Count</div><div class="qcard-desc">LEFT JOIN to include customers with zero rides</div></div>
+          <div class="qcard-chev">▾</div>
+        </div>
+        <div class="qcard-body">
+          <div class="sql-block"><span class="kw">SELECT</span> C.c_name, <span class="fn">COUNT</span>(R.Ride_id) <span class="kw">AS</span> ride_count
+<span class="kw">FROM</span> Customer C
+<span class="kw">LEFT JOIN</span> Ride R <span class="kw">ON</span> C.Customer_id = R.Customer_id
+<span class="kw">GROUP BY</span> C.Customer_id;</div>
+          <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Ride Count</th><th>Visual</th></tr></thead><tbody id="q4-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="qcard" id="qc5">
+        <div class="qcard-head" onclick="tQ('qc5')">
+          <div class="qcard-num">05</div>
+          <div><div class="qcard-title">Safe Drivers — No Major Accidents</div><div class="qcard-desc">Drivers excluded from Major accident reports (NOT IN subquery)</div></div>
+          <div class="qcard-chev">▾</div>
+        </div>
+        <div class="qcard-body">
+          <div class="sql-block"><span class="kw">SELECT</span> D.D_name, D.license_no
+<span class="kw">FROM</span> Driver D
+<span class="kw">WHERE</span> D.Driver_id <span class="kw">NOT IN</span> (
+  <span class="kw">SELECT</span> Driver_id <span class="kw">FROM</span> Accident_Report
+  <span class="kw">WHERE</span> severity = <span class="str">'Major'</span>
+);</div>
+          <div class="table-wrap"><table><thead><tr><th>Driver Name</th><th>License No</th><th>Safety Status</th></tr></thead><tbody id="q5-body"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ═══════════════ UNIVERSAL MODAL ═══════════════ -->
+<div class="overlay" id="mainOverlay">
+  <div class="modal" id="mainModal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-head-title" id="mTitle">Add Record</div>
+        <div class="modal-head-subtitle" id="mSubtitle">Fill in the details below</div>
+      </div>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-body" id="mBody"></div>
+    <div class="form-foot">
+      <span class="form-err-msg" id="mErr"></span>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" id="mSaveBtn" onclick="saveModal()">💾 Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- RIDE DETAIL MODAL -->
+<div class="overlay" id="rideOverlay">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-head-title" id="rdTitle">Ride Details</div>
+        <div class="modal-head-subtitle">Full ride record</div>
+      </div>
+      <button class="modal-x" onclick="closeOverlay('rideOverlay')">✕</button>
+    </div>
+    <div id="rdBody" style="padding:20px 24px"></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ═══════════════════════════════════════════════════
+  JAVASCRIPT — DATA + CRUD ENGINE
+═══════════════════════════════════════════════════ -->
+<script>
+/* ──────────────────────────────────────────
+   DATABASE (in-memory)
+────────────────────────────────────────── */
+const DB = {
+  drivers:[
+    {id:1,name:'Rohan',age:25,license:'LIC001',joined:'2022-01-01',status:'Available',city:'Mumbai',ph1:'8001',ph2:'8002'},
+    {id:2,name:'Amit',age:30,license:'LIC002',joined:'2021-02-01',status:'Busy',city:'Delhi',ph1:'8003',ph2:'8004'},
+    {id:3,name:'Raj',age:28,license:'LIC003',joined:'2020-03-01',status:'Available',city:'Pune',ph1:'8005',ph2:'8006'},
+    {id:4,name:'Karan',age:35,license:'LIC004',joined:'2019-04-01',status:'Offline',city:'Bangalore',ph1:'8007',ph2:'8008'},
+    {id:5,name:'Vikram',age:40,license:'LIC005',joined:'2018-05-01',status:'Available',city:'Chennai',ph1:'8009',ph2:'8010'},
+  ],
+  customers:[
+    {id:1,name:'Ayaan',email:'a@gmail.com',dob:'2004-01-01',city:'Mumbai',ph1:'7001',ph2:'7002'},
+    {id:2,name:'Neha',email:'n@gmail.com',dob:'2003-02-02',city:'Delhi',ph1:'7003',ph2:'7004'},
+    {id:3,name:'Rahul',email:'r@gmail.com',dob:'2002-03-03',city:'Pune',ph1:'7005',ph2:'7006'},
+    {id:4,name:'Sneha',email:'s@gmail.com',dob:'2001-04-04',city:'Bangalore',ph1:'7007',ph2:'7008'},
+    {id:5,name:'Arjun',email:'ar@gmail.com',dob:'2000-05-05',city:'Chennai',ph1:'7009',ph2:'7010'},
+  ],
+  routes:[
+    {id:1,start:'A',end:'B',time:30,dist:10},
+    {id:2,start:'C',end:'D',time:25,dist:8},
+    {id:3,start:'E',end:'F',time:40,dist:15},
+    {id:4,start:'G',end:'H',time:35,dist:12},
+    {id:5,start:'I',end:'J',time:20,dist:7},
+  ],
+  vehicles:[
+    {id:1,reg:'MH01',model:'Swift',fuel:'Petrol',cap:4,status:'Available',ins:'2026',drvId:1},
+    {id:2,reg:'DL02',model:'i20',fuel:'Diesel',cap:4,status:'Busy',ins:'2025',drvId:2},
+    {id:3,reg:'MH03',model:'WagonR',fuel:'CNG',cap:4,status:'Available',ins:'2026',drvId:3},
+    {id:4,reg:'KA04',model:'Baleno',fuel:'Petrol',cap:4,status:'Offline',ins:'2025',drvId:4},
+    {id:5,reg:'TN05',model:'Dzire',fuel:'Diesel',cap:4,status:'Available',ins:'2026',drvId:5},
+  ],
+  companies:[
+    {id:1,name:'Uber',reg:'REG001',city:'Mumbai',ph1:'9001',ph2:'9002',drvId:1},
+    {id:2,name:'Ola',reg:'REG002',city:'Delhi',ph1:'9003',ph2:'9004',drvId:2},
+    {id:3,name:'Rapido',reg:'REG003',city:'Pune',ph1:'9005',ph2:'9006',drvId:3},
+    {id:4,name:'InDrive',reg:'REG004',city:'Bangalore',ph1:'9007',ph2:'9008',drvId:4},
+    {id:5,name:'FastCab',reg:'REG005',city:'Chennai',ph1:'9009',ph2:'9010',drvId:5},
+  ],
+  rides:[
+    {id:1,status:'Completed',dist:10,start:'2025-01-01 10:00',end:'2025-01-01 10:30',pickup:'A',drop:'B',drvId:1,custId:1,rtId:1},
+    {id:2,status:'Completed',dist:8,start:'2025-01-02 11:00',end:'2025-01-02 11:25',pickup:'C',drop:'D',drvId:2,custId:2,rtId:2},
+    {id:3,status:'Ongoing',dist:15,start:'2025-01-03 12:00',end:'',pickup:'E',drop:'F',drvId:3,custId:3,rtId:3},
+    {id:4,status:'Cancelled',dist:12,start:'2025-01-04 13:00',end:'',pickup:'G',drop:'H',drvId:4,custId:4,rtId:4},
+    {id:5,status:'Completed',dist:7,start:'2025-01-05 14:00',end:'2025-01-05 14:20',pickup:'I',drop:'J',drvId:5,custId:5,rtId:5},
+  ],
+  payments:[
+    {id:1,amount:500,method:'Cash',time:'2025-01-01 10:30',status:'Success',rideId:1},
+    {id:2,amount:300,method:'UPI',time:'2025-01-02 11:25',status:'Success',rideId:2},
+    {id:3,amount:700,method:'Card',time:'2025-01-03 12:45',status:'Pending',rideId:3},
+    {id:4,amount:0,method:'Cash',time:'2025-01-04 13:10',status:'Failed',rideId:4},
+    {id:5,amount:250,method:'UPI',time:'2025-01-05 14:20',status:'Success',rideId:5},
+  ],
+  feedback:[
+    {id:1,rating:5,comment:'Good',rideId:1},
+    {id:2,rating:4,comment:'Nice',rideId:2},
+    {id:3,rating:3,comment:'Ok',rideId:3},
+    {id:4,rating:2,comment:'Bad',rideId:4},
+    {id:5,rating:5,comment:'Excellent',rideId:5},
+  ],
+  accidents:[
+    {id:1,date:'2024-01-01',severity:'Minor',desc:'Scratch on vehicle',loc:'Mumbai',drvId:1},
+    {id:2,date:'2024-02-01',severity:'Major',desc:'Crash — significant damage',loc:'Delhi',drvId:2},
+    {id:3,date:'2024-03-01',severity:'Minor',desc:'Brake failure incident',loc:'Pune',drvId:3},
+    {id:4,date:'2024-04-01',severity:'Major',desc:'Collision — reported to police',loc:'Bangalore',drvId:4},
+    {id:5,date:'2024-05-01',severity:'Minor',desc:'Tyre blowout',loc:'Chennai',drvId:5},
+  ],
+  blacklist:[
+    {id:1,date:'2025-01-01',reason:'Fraud',balId:2,repId:2},
+    {id:2,date:'2025-01-02',reason:'Accidents',balId:4,repId:4},
+    {id:3,date:'2025-01-03',reason:'Negative Balance',balId:2,repId:null},
+    {id:4,date:'2025-01-04',reason:'Unsafe Driving',balId:null,repId:4},
+    {id:5,date:'2025-01-05',reason:'Complaint',balId:1,repId:1},
+  ],
+};
+
+/* ──────────────────────────────────────────
+   UTILITIES
+────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const v = id => { const e=$(id); return e ? e.value.trim() : ''; };
+const nid = arr => arr.length ? Math.max(...arr.map(x=>x.id))+1 : 1;
+
+const dName = id => { const d=DB.drivers.find(x=>x.id==id); return d?d.name:'—'; };
+const cName = id => { const c=DB.customers.find(x=>x.id==id); return c?c.name:'—'; };
+
+const badge = (s, label=null) => {
+  const map = {
+    Available:'b-green',Completed:'b-green',Success:'b-green',
+    Ongoing:'b-blue',Pending:'b-amber',Busy:'b-amber',Minor:'b-amber',
+    Offline:'b-muted',Cancelled:'b-red',Failed:'b-red',
+    Major:'b-red',Fraud:'b-red','Unsafe Driving':'b-red',Accidents:'b-red',
+    'Negative Balance':'b-amber',Complaint:'b-amber',
+  };
+  const cls = map[s]||'b-muted';
+  return `<span class="badge ${cls}">${label||s}</span>`;
+};
+
+const starsHTML = r => {
+  r = isNaN(r) ? 0 : Math.max(0, Math.min(5, Math.round(Number(r))));
+  return `<span class="stars">${'★'.repeat(r)}</span><span class="stars-empty">${'★'.repeat(5-r)}</span>`;
+};
+
+const money = n => '₹'+Number(isNaN(n)?0:(n||0)).toLocaleString('en-IN');
+const padId = (n,p=3) => '#'+String(n).padStart(p,'0');
+
+/* ──────────────────────────────────────────
+   RENDER — DASHBOARD
+────────────────────────────────────────── */
+function renderDash(){
+  $('dk-rides').textContent = DB.rides.length;
+  $('dk-comp').textContent = DB.rides.filter(r=>r.status==='Completed').length+' completed';
+  const rev = DB.payments.filter(p=>p.status==='Success').reduce((a,p)=>a+p.amount,0);
+  $('dk-rev').textContent = money(rev);
+  $('dk-succ').textContent = DB.payments.filter(p=>p.status==='Success').length+' successful';
+  $('dk-drv').textContent = DB.drivers.length;
+  $('dk-avail').textContent = DB.drivers.filter(d=>d.status==='Available').length+' available';
+  $('dk-bl').textContent = DB.blacklist.length;
+
+  $('dk-rides-tbody').innerHTML = [...DB.rides].reverse().slice(0,5).map(r=>
+    `<tr><td class="code">${padId(r.id)}</td><td>${dName(r.drvId)}</td><td>${cName(r.custId)}</td>
+     <td>${badge(r.status)}</td><td>${r.dist} km</td></tr>`
+  ).join('');
+
+  $('dk-driver-status').innerHTML = DB.drivers.map(d=>{
+    const c={Available:'var(--emerald)',Busy:'var(--amber)',Offline:'var(--dim)'}[d.status]||'var(--dim)';
+    return `<div class="act-item">
+      <div class="act-dot" style="background:${c}"></div>
+      <div class="act-text"><b>${d.name}</b> — ${d.status}</div>
+      <div class="act-time">${d.license}</div>
+    </div>`;
+  }).join('');
+
+  const methods=['Cash','UPI','Card'],colors=['var(--gold)','var(--emerald)','var(--sky)'];
+  const tots=methods.map(m=>({m,amt:DB.payments.filter(p=>p.method===m).reduce((a,p)=>a+p.amount,0),cnt:DB.payments.filter(p=>p.method===m).length}));
+  const mx=Math.max(...tots.map(t=>t.amt),1);
+  $('dk-pay-break').innerHTML = tots.map((t,i)=>`<div class="bar-row">
+    <div class="bar-info"><span>${t.m}</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px">${money(t.amt)} · ${t.cnt}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${Math.round(t.amt/mx*100)}%;background:${colors[i]}"></div></div>
+  </div>`).join('')+`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
+    ${badge('Success')} ${DB.payments.filter(p=>p.status==='Success').length} &nbsp;
+    ${badge('Pending')} ${DB.payments.filter(p=>p.status==='Pending').length} &nbsp;
+    ${badge('Failed')} ${DB.payments.filter(p=>p.status==='Failed').length}
+  </div>`;
+
+  $('dk-fb-tbody').innerHTML = DB.feedback.slice(-5).map(f=>
+    `<tr><td class="code">${padId(f.rideId)}</td><td><b>${f.rating}/5</b></td>
+     <td>${starsHTML(f.rating)}</td><td class="muted">${f.comment}</td></tr>`
+  ).join('');
+
+  $('dk-alerts').innerHTML = DB.blacklist.slice(-5).map(b=>
+    `<div class="act-item">
+      <div class="act-dot" style="background:var(--rose)"></div>
+      <div class="act-text">${badge('Major','BLACKLIST')} <span style="margin-left:6px;font-size:12px">${b.reason}</span></div>
+      <div class="act-time">${(b.date||'').slice(5)||'—'}</div>
+    </div>`
+  ).join('')||'<div class="empty"><div class="empty-text">No alerts</div></div>';
+}
+
+/* ──────────────────────────────────────────
+   RENDER — RIDES
+────────────────────────────────────────── */
+function renderRides(){
+  const srch=(($('ride-search')||{}).value||'').toLowerCase();
+  const sf=($('ride-sf')||{}).value||'';
+  let data=DB.rides;
+  if(srch) data=data.filter(r=>[dName(r.drvId),cName(r.custId),r.status,r.pickup,r.drop].join(' ').toLowerCase().includes(srch));
+  if(sf) data=data.filter(r=>r.status===sf);
+  $('rides-sub').textContent=data.length+' ride'+(data.length!==1?'s':'')+' shown';
+  $('rides-tbody').innerHTML=data.length?data.map(r=>
+    `<tr><td class="code">${padId(r.id)}</td><td><b>${dName(r.drvId)}</b></td><td>${cName(r.custId)}</td>
+     <td>${badge(r.status)}</td><td>${r.pickup}</td><td>${r.drop}</td>
+     <td>${r.dist} km</td><td class="muted">${r.start}</td>
+     <td><div class="action-btns">
+       <button class="btn btn-ghost btn-xs" onclick="viewRide(${r.id})">View</button>
+       <button class="btn btn-ghost btn-xs" onclick="openModal('ride',${r.id})">Edit</button>
+       <button class="btn btn-danger btn-xs" onclick="del('rides',${r.id})">Del</button>
+     </div></td></tr>`
+  ).join(''):`<tr><td colspan="9"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">No rides found</div></div></td></tr>`;
+}
+
+/* ──────────────────────────────────────────
+   RENDER — ROUTES
+────────────────────────────────────────── */
+function renderRoutes(){
+  $('routes-sub').textContent=DB.routes.length+' routes';
+  $('routes-tbody').innerHTML=DB.routes.map(r=>
+    `<tr><td class="code">RT-${String(r.id).padStart(3,'0')}</td>
+     <td><div class="route-vis"><span class="rp">${r.start}</span><div class="rl"></div><span class="rp">${r.end}</span></div></td>
+     <td>${r.time} min</td><td>${r.dist} km</td>
+     <td><div class="action-btns">
+       <button class="btn btn-ghost btn-xs" onclick="openModal('route',${r.id})">Edit</button>
+       <button class="btn btn-danger btn-xs" onclick="del('routes',${r.id})">Del</button>
+     </div></td></tr>`
+  ).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER — PAYMENTS
+────────────────────────────────────────── */
+function renderPayments(){
+  const rev=DB.payments.filter(p=>p.status==='Success').reduce((a,p)=>a+p.amount,0);
+  const pend=DB.payments.filter(p=>p.status==='Pending').reduce((a,p)=>a+p.amount,0);
+  $('pay-sub').textContent=DB.payments.length+' transactions';
+  $('pay-kpis').innerHTML=`
+    <div class="kpi-card green"><div class="kpi-icon">✓</div><div class="kpi-label">Revenue</div><div class="kpi-value">${money(rev)}</div><div class="kpi-sub">${DB.payments.filter(p=>p.status==='Success').length} successful</div></div>
+    <div class="kpi-card gold"><div class="kpi-icon">⏳</div><div class="kpi-label">Pending</div><div class="kpi-value">${money(pend)}</div><div class="kpi-sub">${DB.payments.filter(p=>p.status==='Pending').length} pending</div></div>
+    <div class="kpi-card red"><div class="kpi-icon">✗</div><div class="kpi-label">Failed</div><div class="kpi-value">${DB.payments.filter(p=>p.status==='Failed').length}</div><div class="kpi-sub">Failed transactions</div></div>
+    <div class="kpi-card blue"><div class="kpi-icon">Σ</div><div class="kpi-label">Total</div><div class="kpi-value">${DB.payments.length}</div><div class="kpi-sub">All transactions</div></div>`;
+  $('pay-tbody').innerHTML=DB.payments.map(p=>
+    `<tr><td class="code">P-${String(p.id).padStart(3,'0')}</td><td class="code">${padId(p.rideId)}</td>
+     <td><b>${money(p.amount)}</b></td><td>${p.method}</td><td class="muted">${p.time}</td>
+     <td>${badge(p.status)}</td>
+     <td><div class="action-btns">
+       <button class="btn btn-ghost btn-xs" onclick="openModal('payment',${p.id})">Edit</button>
+       <button class="btn btn-danger btn-xs" onclick="del('payments',${p.id})">Del</button>
+     </div></td></tr>`
+  ).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER — FEEDBACK
+────────────────────────────────────────── */
+function renderFeedback(){
+  const avg=DB.feedback.length?(DB.feedback.reduce((a,f)=>a+f.rating,0)/DB.feedback.length).toFixed(1):0;
+  $('fb-sub').textContent=DB.feedback.length+' ratings · Average: '+avg+'/5';
+  $('fb-tbody').innerHTML=DB.feedback.map(f=>
+    `<tr><td class="code">F-${String(f.id).padStart(3,'0')}</td><td class="code">${padId(f.rideId)}</td>
+     <td><b>${f.rating}/5</b></td><td>${starsHTML(f.rating)}</td><td>${f.comment}</td>
+     <td><div class="action-btns">
+       <button class="btn btn-ghost btn-xs" onclick="openModal('feedback',${f.id})">Edit</button>
+       <button class="btn btn-danger btn-xs" onclick="del('feedback',${f.id})">Del</button>
+     </div></td></tr>`
+  ).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER — DRIVERS
+────────────────────────────────────────── */
+function renderDrivers(){
+  $('drv-sub').textContent=DB.drivers.length+' drivers';
+  $('drv-cards').innerHTML=DB.drivers.map(d=>{
+    const rids=DB.rides.filter(r=>r.drvId===d.id).map(r=>r.id);
+    const fbs=DB.feedback.filter(f=>rids.includes(f.rideId));
+    const avgR=fbs.length?(fbs.reduce((a,f)=>a+f.rating,0)/fbs.length).toFixed(1):'—';
+    const rides=rids.length;
+    return `<div class="driver-card">
+      <div class="driver-av">${d.name[0]}</div>
+      <div class="driver-name">${d.name}</div>
+      <div class="driver-meta">${d.license} · Age ${d.age} · ${d.city}</div>
+      ${badge(d.status)}
+      <div class="driver-stats">
+        <div class="driver-stat"><div class="ds-val">${rides}</div><div class="ds-lbl">Rides</div></div>
+        <div class="driver-stat"><div class="ds-val" style="color:var(--gold)">${avgR}</div><div class="ds-lbl">Rating</div></div>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openModal('driver',${d.id})">✏ Edit</button>
+        <button class="btn btn-danger btn-sm" style="flex:1" onclick="del('drivers',${d.id})">🗑 Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  $('drv-tbody').innerHTML=DB.drivers.map(d=>
+    `<tr><td class="code">D-${String(d.id).padStart(3,'0')}</td><td><b>${d.name}</b></td><td>${d.age}</td>
+     <td class="code">${d.license}</td><td class="muted">${d.joined}</td>
+     <td>${badge(d.status)}</td><td class="muted">${d.city}</td><td class="code">${d.ph1}</td>
+     <td><div class="action-btns">
+       <button class="btn btn-ghost btn-xs" onclick="openModal('driver',${d.id})">Edit</button>
+       <button class="btn btn-danger btn-xs" onclick="del('drivers',${d.id})">Del</button>
+     </div></td></tr>`
+  ).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER — VEHICLES
+────────────────────────────────────────── */
+function renderVehicles(){
+  $('veh-sub').textContent=DB.vehicles.length+' vehicles';
+  $('veh-tbody').innerHTML=DB.vehicles.map(v=>
+    `<tr><td class="code">V-${String(v.id).padStart(3,'0')}</td><td class="code">${v.reg}</td>
+     <td><b>${v.model}</b></td><td>${v.fuel}</td><td>${v.cap}</td>
+     <td>${badge(v.status)}</td><td class="code">${v.ins}</td><td>${dName(v.drvId)}</td>
+     <td><div class="action-btns">
+       <button class="btn btn-ghost btn-xs" onclick="openModal('vehicle',${v.id})">Edit</button>
+       <button class="btn btn-danger btn-xs" onclick="del('vehicles',${v.id})">Del</button>
+     </div></td></tr>`
+  ).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER — COMPANIES
+────────────────────────────────────────── */
+const CO_COLS=[['var(--sky)','#0c1e30'],['var(--emerald)','#0c1e18'],['var(--gold)','#1e1800'],['#f97316','#1e1000'],['#8b5cf6','#150e25']];
+function renderCompanies(){
+  $('co-sub').textContent=DB.companies.length+' companies';
+  $('co-cards').innerHTML=DB.companies.map((c,i)=>{
+    const [clr,bg]=CO_COLS[i%5];
+    return `<div class="co-card">
+      <div class="co-logo" style="background:${bg};border:1px solid ${clr};color:${clr}">${c.name.slice(0,3).toUpperCase()}</div>
+      <div class="co-name">${c.name}</div>
+      <div class="co-city">📍 ${c.city}</div>
+      <div style="margin-top:8px"><span class="badge b-blue">${c.reg}</span></div>
+      <div style="margin-top:10px;display:flex;gap:6px">
+        <button class="btn btn-ghost btn-xs" style="flex:1" onclick="openModal('company',${c.id})">Edit</button>
+        <button class="btn btn-danger btn-xs" style="flex:1" onclick="del('companies',${c.id})">Del</button>
+      </div>
+    </div>`;
+  }).join('');
+  $('co-tbody').innerHTML=DB.companies.map(c=>{
+    const d=DB.drivers.find(x=>x.id===c.drvId);
+    return `<tr><td><b>${c.name}</b></td><td class="code">${c.reg}</td><td class="muted">${c.city}</td>
+      <td>${d?d.name:'—'}</td><td class="code">${d?d.license:'—'}</td>
+      <td>${d?badge(d.status):'—'}</td></tr>`;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER — CUSTOMERS
+────────────────────────────────────────── */
+function renderCustomers(){
+  const q=(($('cust-search')||{}).value||'').toLowerCase();
+  let data=DB.customers;
+  if(q) data=data.filter(c=>[c.name,c.email,c.city].join(' ').toLowerCase().includes(q));
+  $('cust-sub').textContent=data.length+' customer'+(data.length!==1?'s':'')+' shown';
+  $('cust-tbody').innerHTML=data.map(c=>{
+    const rides=DB.rides.filter(r=>r.custId===c.id).length;
+    return `<tr><td class="code">C-${String(c.id).padStart(3,'0')}</td><td><b>${c.name}</b></td>
+      <td class="code">${c.email}</td><td class="muted">${c.dob}</td>
+      <td>${c.city}</td><td class="code">${c.ph1}</td>
+      <td><span class="badge b-blue">${rides}</span></td>
+      <td><div class="action-btns">
+        <button class="btn btn-ghost btn-xs" onclick="openModal('customer',${c.id})">Edit</button>
+        <button class="btn btn-danger btn-xs" onclick="del('customers',${c.id})">Del</button>
+      </div></td></tr>`;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER — ACCIDENTS
+────────────────────────────────────────── */
+function renderAccidents(){
+  const maj=DB.accidents.filter(a=>a.severity==='Major').length;
+  $('acc-sub').textContent=DB.accidents.length+' reports · '+maj+' Major · '+(DB.accidents.length-maj)+' Minor';
+  $('acc-kpis').innerHTML=`
+    <div class="kpi-card red"><div class="kpi-icon">⚠</div><div class="kpi-label">Major</div><div class="kpi-value">${maj}</div><div class="kpi-sub">Severe incidents</div></div>
+    <div class="kpi-card gold"><div class="kpi-icon">⚡</div><div class="kpi-label">Minor</div><div class="kpi-value">${DB.accidents.length-maj}</div><div class="kpi-sub">Minor incidents</div></div>
+    <div class="kpi-card blue"><div class="kpi-icon">🏙</div><div class="kpi-label">Cities</div><div class="kpi-value">${new Set(DB.accidents.map(a=>a.loc)).size}</div><div class="kpi-sub">Locations affected</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">✓</div><div class="kpi-label">Clean Drivers</div><div class="kpi-value">${DB.drivers.length-new Set(DB.accidents.filter(a=>a.severity==='Major').map(a=>a.drvId)).size}</div><div class="kpi-sub">No major accidents</div></div>`;
+  $('acc-tbody').innerHTML=DB.accidents.map(a=>
+    `<tr><td class="code" style="border-left:3px solid ${a.severity==='Major'?'var(--rose)':'var(--amber)'}">AR-${String(a.id).padStart(3,'0')}</td>
+     <td class="muted">${a.date}</td><td>${dName(a.drvId)}</td>
+     <td>${badge(a.severity)}</td><td>${a.loc}</td><td class="muted">${a.desc}</td>
+     <td><div class="action-btns">
+       <button class="btn btn-ghost btn-xs" onclick="openModal('accident',${a.id})">Edit</button>
+       <button class="btn btn-danger btn-xs" onclick="del('accidents',${a.id})">Del</button>
+     </div></td></tr>`
+  ).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER — BLACKLIST
+────────────────────────────────────────── */
+function renderBlacklist(){
+  $('bl-sub').textContent=DB.blacklist.length+' flagged records';
+  $('bl-tbody').innerHTML=DB.blacklist.map(b=>
+    `<tr style="border-left:3px solid var(--rose)">
+     <td class="code">BL-${String(b.id).padStart(3,'0')}</td>
+     <td class="muted">${b.date}</td>
+     <td>${badge(b.reason)}</td>
+     <td class="code">${b.balId?'BAL-'+b.balId:'—'}</td>
+     <td class="code">${b.repId?'AR-'+b.repId:'—'}</td>
+     <td><div class="action-btns">
+       <button class="btn btn-ghost btn-xs" onclick="openModal('blacklist',${b.id})">Edit</button>
+       <button class="btn btn-danger btn-xs" onclick="del('blacklist',${b.id})">Del</button>
+     </div></td></tr>`
+  ).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER — SQL QUERIES
+────────────────────────────────────────── */
+function renderQueries(){
+  // Q1 cash
+  const q1=DB.rides.filter(r=>{ const p=DB.payments.find(p=>p.rideId===r.id); return p&&p.method==='Cash'; });
+  $('q1-body').innerHTML=q1.map(r=>{ const d=DB.drivers.find(x=>x.id===r.drvId);
+    return `<tr><td><b>${d.name}</b></td><td class="code">${d.license}</td><td>${badge(r.status)}</td><td>Cash</td></tr>`; }).join('')
+    ||'<tr><td colspan="4"><div class="empty"><div class="empty-text">No cash rides currently</div></div></td></tr>';
+
+  // Q2 above avg
+  const dTots=DB.drivers.map(d=>({ d, tot:DB.payments.filter(p=>{ const r=DB.rides.find(r=>r.id===p.rideId); return r&&r.drvId===d.id; }).reduce((a,p)=>a+p.amount,0) }));
+  const avg=dTots.reduce((a,x)=>a+x.tot,0)/Math.max(dTots.length,1);
+  $('q2-body').innerHTML=dTots.filter(x=>x.tot>avg).map(x=>
+    `<tr><td><b>${x.d.name}</b></td><td><b>${money(x.tot)}</b></td><td><span class="badge b-green">+${Math.round((x.tot-avg)/Math.max(avg,1)*100)}% above avg</span></td></tr>`
+  ).join('')||'<tr><td colspan="3"><div class="empty"><div class="empty-text">No results</div></div></td></tr>';
+
+  // Q3 profile view
+  $('q3-body').innerHTML=DB.drivers.map(d=>{
+    const veh=DB.vehicles.find(x=>x.drvId===d.id);
+    const rids=DB.rides.filter(r=>r.drvId===d.id).map(r=>r.id);
+    const fbs=DB.feedback.filter(f=>rids.includes(f.rideId));
+    const avgR=fbs.length?(fbs.reduce((a,f)=>a+f.rating,0)/fbs.length).toFixed(1):'—';
+    const acc=DB.accidents.filter(a=>a.drvId===d.id).length;
+    return `<tr><td><b>${d.name}</b></td><td>${veh?veh.model:'—'}</td>
+      <td>${starsHTML(avgR==='—'?0:Math.round(parseFloat(avgR)))} ${avgR}</td>
+      <td>${acc>0?(()=>{const ax=DB.accidents.find(a=>a.drvId===d.id);return ax?badge(ax.severity):'<span class="badge b-amber">'+acc+'</span>';})():'<span class="badge b-green">0</span>'}</td></tr>`;
+  }).join('');
+
+  // Q4 customer rides
+  const maxR=Math.max(...DB.customers.map(c=>DB.rides.filter(r=>r.custId===c.id).length),1);
+  $('q4-body').innerHTML=DB.customers.map(c=>{
+    const cnt=DB.rides.filter(r=>r.custId===c.id).length;
+    return `<tr><td><b>${c.name}</b></td><td>${cnt}</td>
+      <td><div class="bar-track" style="width:120px"><div class="bar-fill" style="width:${Math.round(cnt/maxR*100)}%;background:var(--gold)"></div></div></td></tr>`;
+  }).join('');
+
+  // Q5 safe drivers
+  const majIds=new Set(DB.accidents.filter(a=>a.severity==='Major').map(a=>a.drvId));
+  $('q5-body').innerHTML=DB.drivers.filter(d=>!majIds.has(d.id)).map(d=>
+    `<tr><td><b>${d.name}</b></td><td class="code">${d.license}</td><td><span class="badge b-green">✓ No Major Accidents</span></td></tr>`
+  ).join('');
+}
+
+/* ──────────────────────────────────────────
+   RENDER ALL
+────────────────────────────────────────── */
+function safeRender(fn, name){
+  try { fn(); } catch(e) { console.error('Render error in '+name+':', e); }
+}
+function renderAll(){
+  safeRender(renderDash,'Dashboard');
+  safeRender(renderRides,'Rides');
+  safeRender(renderRoutes,'Routes');
+  safeRender(renderPayments,'Payments');
+  safeRender(renderFeedback,'Feedback');
+  safeRender(renderDrivers,'Drivers');
+  safeRender(renderVehicles,'Vehicles');
+  safeRender(renderCompanies,'Companies');
+  safeRender(renderCustomers,'Customers');
+  safeRender(renderAccidents,'Accidents');
+  safeRender(renderBlacklist,'Blacklist');
+  safeRender(renderQueries,'Queries');
+}
+
+/* ──────────────────────────────────────────
+   MODAL ENGINE
+────────────────────────────────────────── */
+let _mType='', _mEditId=null, _mSaveFn=null;
+
+// Dropdown option helpers
+const drvOpts = (sel=null) => DB.drivers.map(d=>`<option value="${d.id}" ${d.id==sel?'selected':''}>${d.name}</option>`).join('');
+const custOpts = (sel=null) => DB.customers.map(c=>`<option value="${c.id}" ${c.id==sel?'selected':''}>${c.name}</option>`).join('');
+const rtOpts = (sel=null) => DB.routes.map(r=>`<option value="${r.id}" ${r.id==sel?'selected':''}>${'RT-'+String(r.id).padStart(3,'0')}: ${r.start}→${r.end}</option>`).join('');
+const rideOpts = (sel=null) => DB.rides.map(r=>`<option value="${r.id}" ${r.id==sel?'selected':''}>${padId(r.id)} — ${dName(r.drvId)} → ${cName(r.custId)}</option>`).join('');
+
+const sel3 = (opts, chosen, id) => `<select id="${id}" class=""><option value="">— Select —</option>${opts(chosen)}</select>`;
+
+const fRow = (...fields) => `<div class="form-row ${fields.length===1?'single':fields.length===3?'triple':''}">${fields.join('')}</div>`;
+const field = (label, input, req=false) => `<div class="field"><label>${label}${req?'<span class="req">*</span>':''}</label>${input}</div>`;
+const inp = (id,type='text',val='',ph='') => `<input id="${id}" type="${type}" value="${val===null||val===undefined?'':''+val}" placeholder="${ph}">`;
+const slt = (id,opts,cur) => `<select id="${id}">${opts.map(o=>`<option ${o===cur?'selected':''}>${o}</option>`).join('')}</select>`;
+const txt = (id,val='',ph='') => `<textarea id="${id}" placeholder="${ph}">${val}</textarea>`;
+
+const FORMS = {
+  driver(R={}){
+    return {
+      title: R.id?'Edit Driver':'Add New Driver',
+      subtitle: R.id?`Editing: ${R.name}`:'Register a new driver to the fleet',
+      html: fRow(
+        field('Full Name',inp('f-name','text',R.name||'','e.g. Rohit Sharma'),true),
+        field('Age',inp('f-age','number',R.age||'','e.g. 28'))
+      )+fRow(
+        field('License Number',inp('f-license','text',R.license||'','e.g. LIC006'),true),
+        field('Date of Joining',inp('f-joined','date',R.joined||''),true)
+      )+fRow(
+        field('Status',slt('f-status',['Available','Busy','Offline'],R.status||'Available')),
+        field('City',inp('f-city','text',R.city||'','e.g. Mumbai'),true)
+      )+fRow(
+        field('Primary Phone',inp('f-ph1','text',R.ph1||'','Phone 1'),true),
+        field('Secondary Phone',inp('f-ph2','text',R.ph2||'','Phone 2 (optional)'))
+      ),
+      save(){
+        const name=v('f-name'),lic=v('f-license'),joined=v('f-joined'),city=v('f-city'),ph1=v('f-ph1');
+        if(!name) return err('Driver name is required');
+        if(!lic) return err('License number is required');
+        if(!joined) return err('Date of joining is required');
+        if(!city) return err('City is required');
+        if(!ph1) return err('Primary phone is required');
+        const o={name,age:+v('f-age')||0,license:lic,joined,status:v('f-status'),city,ph1,ph2:v('f-ph2')};
+        if(R.id) Object.assign(DB.drivers.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.drivers); DB.drivers.push(o); }
+        done('driver',R.id?`${name} updated successfully`:`${name} added to the fleet`);
+      }
+    };
+  },
+  customer(R={}){
+    return {
+      title: R.id?'Edit Customer':'Add New Customer',
+      subtitle: R.id?`Editing: ${R.name}`:'Register a new customer',
+      html: fRow(
+        field('Full Name',inp('f-name','text',R.name||'','e.g. Priya Patel'),true),
+        field('Email Address',inp('f-email','email',R.email||'','email@example.com'),true)
+      )+fRow(
+        field('Date of Birth',inp('f-dob','date',R.dob||'')),
+        field('City',inp('f-city','text',R.city||'','e.g. Hyderabad'),true)
+      )+fRow(
+        field('Primary Phone',inp('f-ph1','text',R.ph1||'','Phone 1'),true),
+        field('Secondary Phone',inp('f-ph2','text',R.ph2||'','Phone 2 (optional)'))
+      ),
+      save(){
+        const name=v('f-name'),email=v('f-email'),city=v('f-city'),ph1=v('f-ph1');
+        if(!name) return err('Name is required');
+        if(!email) return err('Email is required');
+        if(DB.customers.some(x=>x.email===email&&x.id!==R.id)) return err('This email is already registered');
+        if(!city) return err('City is required');
+        if(!ph1) return err('Primary phone is required');
+        const o={name,email,dob:v('f-dob'),city,ph1,ph2:v('f-ph2')};
+        if(R.id) Object.assign(DB.customers.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.customers); DB.customers.push(o); }
+        done('customer',R.id?`${name} updated`:`${name} added`);
+      }
+    };
+  },
+  vehicle(R={}){
+    return {
+      title: R.id?'Edit Vehicle':'Add New Vehicle',
+      subtitle: 'Assign vehicle to a registered driver',
+      html: fRow(
+        field('Registration No',inp('f-reg','text',R.reg||'','e.g. MH06'),true),
+        field('Model',inp('f-model','text',R.model||'','e.g. Swift'),true)
+      )+fRow(
+        field('Fuel Type',slt('f-fuel',['Petrol','Diesel','CNG','Electric'],R.fuel||'Petrol')),
+        field('Seating Capacity',inp('f-cap','number',R.cap||4,'4'))
+      )+fRow(
+        field('Availability',slt('f-status',['Available','Busy','Offline'],R.status||'Available')),
+        field('Insurance Expiry Year',inp('f-ins','text',R.ins||'','2026'))
+      )+fRow(
+        field('Assigned Driver',`<select id="f-drv"><option value="">— Select Driver —</option>${drvOpts(R.drvId)}</select>`,true)
+      ),
+      save(){
+        const reg=v('f-reg'),model=v('f-model'),drvId=+v('f-drv');
+        if(!reg) return err('Registration number is required');
+        if(!model) return err('Vehicle model is required');
+        if(!drvId) return err('Please assign a driver');
+        const o={reg,model,fuel:v('f-fuel'),cap:+v('f-cap')||4,status:v('f-status'),ins:v('f-ins'),drvId};
+        if(R.id) Object.assign(DB.vehicles.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.vehicles); DB.vehicles.push(o); }
+        done('vehicle',R.id?`${model} updated`:`${model} added`);
+      }
+    };
+  },
+  route(R={}){
+    return {
+      title: R.id?'Edit Route':'Add New Route',
+      subtitle: 'Define a pickup-to-drop route',
+      html: fRow(
+        field('Start Point',inp('f-start','text',R.start||'','e.g. Airport'),true),
+        field('End Point',inp('f-end','text',R.end||'','e.g. Station'),true)
+      )+fRow(
+        field('Estimated Time (min)',inp('f-time','number',R.time||'','e.g. 30')),
+        field('Distance (km)',inp('f-dist','number',R.dist||'','e.g. 10.5'),true)
+      ),
+      save(){
+        const start=v('f-start'),end=v('f-end'),dist=parseFloat(v('f-dist'));
+        if(!start) return err('Start point is required');
+        if(!end) return err('End point is required');
+        if(!dist||dist<=0) return err('Enter a valid distance');
+        const o={start,end,time:+v('f-time')||0,dist};
+        if(R.id) Object.assign(DB.routes.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.routes); DB.routes.push(o); }
+        done('route',R.id?'Route updated':`Route ${start}→${end} added`);
+      }
+    };
+  },
+  ride(R={}){
+    return {
+      title: R.id?'Edit Ride':'Add New Ride',
+      subtitle: 'Log a ride with driver, customer and route',
+      html: fRow(
+        field('Driver',`<select id="f-drv"><option value="">— Select Driver —</option>${drvOpts(R.drvId)}</select>`,true),
+        field('Customer',`<select id="f-cust"><option value="">— Select Customer —</option>${custOpts(R.custId)}</select>`,true)
+      )+fRow(
+        field('Route',`<select id="f-rt"><option value="">— Select Route —</option>${rtOpts(R.rtId)}</select>`,true),
+        field('Status',slt('f-status',['Completed','Ongoing','Cancelled'],R.status||'Completed'))
+      )+fRow(
+        field('Pickup Location',inp('f-pickup','text',R.pickup||'','e.g. A'),true),
+        field('Drop Location',inp('f-drop','text',R.drop||'','e.g. B'),true)
+      )+fRow(
+        field('Distance (km)',inp('f-dist','number',R.dist||'','e.g. 10'),true),
+        field('Start Time',inp('f-start','datetime-local',R.start?R.start.replace(' ','T'):''),true)
+      )+fRow(
+        field('End Time',inp('f-end','datetime-local',R.end?R.end.replace(' ','T'):''))
+      ),
+      save(){
+        const drvId=+v('f-drv'),custId=+v('f-cust'),rtId=+v('f-rt');
+        const pickup=v('f-pickup'),drop=v('f-drop'),dist=parseFloat(v('f-dist')),start=v('f-start');
+        if(!drvId) return err('Please select a driver');
+        if(!custId) return err('Please select a customer');
+        if(!rtId) return err('Please select a route');
+        if(!pickup||!drop) return err('Pickup and drop locations are required');
+        if(!dist||dist<=0) return err('Enter a valid distance');
+        if(!start) return err('Start time is required');
+        const o={drvId,custId,rtId,pickup,drop,dist,start:start.replace('T',' '),end:v('f-end').replace('T',' '),status:v('f-status')};
+        if(R.id) Object.assign(DB.rides.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.rides); DB.rides.push(o); }
+        done('ride',R.id?'Ride updated':'Ride logged successfully');
+      }
+    };
+  },
+  payment(R={}){
+    return {
+      title: R.id?'Edit Payment':'Add Payment',
+      subtitle: 'Record a payment for a ride',
+      html: fRow(
+        field('Ride',`<select id="f-ride"><option value="">— Select Ride —</option>${rideOpts(R.rideId)}</select>`,true),
+        field('Amount (₹)',inp('f-amount','number',R.amount||'','e.g. 500'),true)
+      )+fRow(
+        field('Payment Method',slt('f-method',['Cash','UPI','Card'],R.method||'Cash')),
+        field('Status',slt('f-status',['Success','Pending','Failed'],R.status||'Success'))
+      )+fRow(
+        field('Transaction Time',inp('f-time','datetime-local',R.time?R.time.replace(' ','T'):''))
+      ),
+      save(){
+        const rideId=+v('f-ride'),amount=v('f-amount');
+        if(!rideId) return err('Please select a ride');
+        if(amount===''||amount===null) return err('Amount is required (0 is allowed)');
+        const o={rideId,amount:+amount,method:v('f-method'),status:v('f-status'),time:v('f-time').replace('T',' ')};
+        if(R.id) Object.assign(DB.payments.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.payments); DB.payments.push(o); }
+        done('payment',R.id?'Payment updated':'Payment recorded');
+      }
+    };
+  },
+  feedback(R={}){
+    return {
+      title: R.id?'Edit Feedback':'Add Feedback',
+      subtitle: 'Record customer rating for a ride',
+      html: fRow(
+        field('Ride',`<select id="f-ride"><option value="">— Select Ride —</option>${rideOpts(R.rideId)}</select>`,true),
+        field('Rating',`<select id="f-rating">
+          <option value="1" ${R.rating==1?'selected':''}>1 — Poor ★</option>
+          <option value="2" ${R.rating==2?'selected':''}>2 — Fair ★★</option>
+          <option value="3" ${R.rating==3?'selected':''}>3 — Good ★★★</option>
+          <option value="4" ${R.rating==4?'selected':''}>4 — Great ★★★★</option>
+          <option value="5" ${!R.rating||R.rating==5?'selected':''}>5 — Excellent ★★★★★</option>
+        </select>`,true)
+      )+fRow(
+        field('Comment',txt('f-comment',R.comment||'','Write the customer\'s feedback…'))
+      ),
+      save(){
+        const rideId=+v('f-ride');
+        if(!rideId) return err('Please select a ride');
+        const o={rideId,rating:+v('f-rating'),comment:v('f-comment')};
+        if(R.id) Object.assign(DB.feedback.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.feedback); DB.feedback.push(o); }
+        done('feedback',R.id?'Feedback updated':'Feedback added');
+      }
+    };
+  },
+  accident(R={}){
+    return {
+      title: R.id?'Edit Accident Report':'File Accident Report',
+      subtitle: 'Log an accident for a driver',
+      html: fRow(
+        field('Driver',`<select id="f-drv"><option value="">— Select Driver —</option>${drvOpts(R.drvId)}</select>`,true),
+        field('Date',inp('f-date','date',R.date||''),true)
+      )+fRow(
+        field('Severity',slt('f-sev',['Minor','Major'],R.severity||'Minor')),
+        field('Location',inp('f-loc','text',R.loc||'','City / Area'),true)
+      )+fRow(
+        field('Description',txt('f-desc',R.desc||'','Describe the accident in detail…'),true)
+      ),
+      save(){
+        const drvId=+v('f-drv'),date=v('f-date'),loc=v('f-loc'),desc=v('f-desc');
+        if(!drvId) return err('Please select a driver');
+        if(!date) return err('Date is required');
+        if(!loc) return err('Location is required');
+        if(!desc) return err('Description is required');
+        const o={drvId,date,severity:v('f-sev'),loc,desc};
+        if(R.id) Object.assign(DB.accidents.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.accidents); DB.accidents.push(o); }
+        done('accident',R.id?'Report updated':'Accident report filed');
+      }
+    };
+  },
+  blacklist(R={}){
+    return {
+      title: R.id?'Edit Blacklist Record':'Flag New Record',
+      subtitle: 'Mark a driver for serious violations',
+      html: fRow(
+        field('Date Flagged',inp('f-date','date',R.date||''),true),
+        field('Reason',slt('f-reason',['Fraud','Accidents','Negative Balance','Unsafe Driving','Complaint'],R.reason||'Fraud'),true)
+      )+fRow(
+        field('Balance ID (optional)',inp('f-bal','number',R.balId||'','e.g. 2')),
+        field('Report ID (optional)',inp('f-rep','number',R.repId||'','e.g. 4'))
+      ),
+      save(){
+        const date=v('f-date'),reason=v('f-reason');
+        if(!date) return err('Date is required');
+        if(!reason) return err('Reason is required');
+        const o={date,reason,balId:+v('f-bal')||null,repId:+v('f-rep')||null};
+        if(R.id) Object.assign(DB.blacklist.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.blacklist); DB.blacklist.push(o); }
+        done('blacklist',R.id?'Record updated':'Record flagged');
+      }
+    };
+  },
+  company(R={}){
+    return {
+      title: R.id?'Edit Company':'Add New Company',
+      subtitle: 'Register a taxi company to the platform',
+      html: fRow(
+        field('Company Name',inp('f-name','text',R.name||'','e.g. RapidX'),true),
+        field('Registration No',inp('f-reg','text',R.reg||'','e.g. REG006'),true)
+      )+fRow(
+        field('City',inp('f-city','text',R.city||'','e.g. Kolkata'),true),
+        field('Assigned Driver',`<select id="f-drv"><option value="">— None —</option>${drvOpts(R.drvId)}</select>`)
+      )+fRow(
+        field('Phone 1',inp('f-ph1','text',R.ph1||'','Primary')),
+        field('Phone 2',inp('f-ph2','text',R.ph2||'','Secondary (optional)'))
+      ),
+      save(){
+        const name=v('f-name'),reg=v('f-reg'),city=v('f-city');
+        if(!name) return err('Company name is required');
+        if(!reg) return err('Registration number is required');
+        if(!city) return err('City is required');
+        const o={name,reg,city,drvId:+v('f-drv')||null,ph1:v('f-ph1'),ph2:v('f-ph2')};
+        if(R.id) Object.assign(DB.companies.find(x=>x.id===R.id),o);
+        else { o.id=nid(DB.companies); DB.companies.push(o); }
+        done('company',R.id?`${name} updated`:`${name} added`);
+      }
+    };
+  },
+};
+
+function openModal(type, id=null){
+  try {
+    _mType=type; _mEditId=id;
+    const tMap={driver:'drivers',customer:'customers',vehicle:'vehicles',route:'routes',ride:'rides',payment:'payments',feedback:'feedback',accident:'accidents',blacklist:'blacklist',company:'companies'};
+    const rec = id ? (DB[tMap[type]]||[]).find(x=>x.id===id) : {};
+    const form = FORMS[type](rec||{});
+    $('mTitle').textContent = form.title;
+    $('mSubtitle').textContent = form.subtitle||'';
+    $('mBody').innerHTML = form.html;
+    $('mErr').textContent = '';
+    $('mSaveBtn').textContent = id ? '💾 Update Record' : '💾 Save Record';
+    _mSaveFn = form.save;
+    $('mainOverlay').classList.add('open');
+  } catch(e) {
+    console.error('openModal error:', e);
+    toast('Error opening form: '+e.message,'error');
+  }
+}
+
+function saveModal(){
+  try {
+    if(_mSaveFn) _mSaveFn();
+  } catch(e) {
+    console.error('saveModal error:', e);
+    toast('Save error: '+e.message,'error');
+  }
+}
+function closeModal(){ $('mainOverlay').classList.remove('open'); _mSaveFn=null; }
+function closeOverlay(id){ $(id).classList.remove('open'); }
+
+function err(msg){ $('mErr').textContent='⚠ '+msg; toast(msg,'error'); }
+
+function done(type, msg){
+  closeModal();
+  renderAll();
+  toast(msg,'success');
+}
+
+function del(table,id){
+  if(!confirm('Delete this record? This cannot be undone.')) return;
+  try {
+    DB[table]=DB[table].filter(x=>x.id!==id);
+    renderAll();
+    toast('Record deleted','info');
+  } catch(e) {
+    console.error('del error:', e);
+    toast('Delete failed: '+e.message,'error');
+  }
+}
+
+/* ──────────────────────────────────────────
+   RIDE DETAIL VIEW
+────────────────────────────────────────── */
+function viewRide(id){
+  const r=DB.rides.find(x=>x.id===id);
+  if(!r) return;
+  const p=DB.payments.find(x=>x.rideId===id);
+  const fb=DB.feedback.find(x=>x.rideId===id);
+  const fld=(l,val)=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:10px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px">${l}</div>
+    <div style="font-size:13px;color:var(--text)">${val}</div>
+  </div>`;
+  $('rdTitle').textContent='Ride '+padId(r.id);
+  $('rdBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      ${fld('Ride ID',`<span style="font-family:'JetBrains Mono',monospace">${padId(r.id)}</span>`)}
+      ${fld('Status',badge(r.status))}
+      ${fld('Driver',`<b>${dName(r.drvId)}</b>`)}
+      ${fld('Customer',`<b>${cName(r.custId)}</b>`)}
+      ${fld('Pickup',r.pickup)}
+      ${fld('Drop',r.drop)}
+      ${fld('Distance',(r.dist||r.distance||'—')+' km')}
+      ${fld('Start Time',r.start)}
+      ${fld('End Time',r.end||'—')}
+      ${fld('Payment',p?`${money(p.amount)} · ${p.method} · ${badge(p.status)}`:'No payment linked')}
+    </div>
+    ${fb?`<div style="background:var(--gold-dim);border:1px solid rgba(212,169,74,.3);border-radius:8px;padding:14px 16px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Customer Feedback</div>
+      <div>${starsHTML(fb.rating)} <span style="margin-left:8px;font-size:13px">${fb.rating}/5 — ${fb.comment}</span></div>
+    </div>`:''}`;
+  $('rideOverlay').classList.add('open');
+}
+
+/* ──────────────────────────────────────────
+   NAVIGATION
+────────────────────────────────────────── */
+const PAGE_META = {
+  dashboard:['Fleet Overview','Overview'],
+  rides:['Rides','Operations'],
+  routes:['Routes','Operations'],
+  payments:['Payments','Operations'],
+  feedback:['Feedback','Operations'],
+  drivers:['Drivers','Fleet'],
+  vehicles:['Vehicles','Fleet'],
+  companies:['Companies','Fleet'],
+  customers:['Customers','Customers'],
+  accidents:['Accident Reports','Safety'],
+  blacklist:['Blacklist','Safety'],
+  queries:['SQL Queries','Analytics'],
+};
+
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  const pg=$(('page-'+page));
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(n=>{ if(n.getAttribute('onclick')===`nav('${page}')`) n.classList.add('active'); });
+  const [pg2,cr]=PAGE_META[page]||[page,''];
+  $('tbPage').textContent=pg2;
+  $('tbCrumb').textContent=cr;
+  $('tbChip').textContent=DB.drivers.length+'D · '+DB.rides.length+'R · taxi_db';
+}
+
+/* ──────────────────────────────────────────
+   SQL QUERY ACCORDION
+────────────────────────────────────────── */
+function tQ(id){ $(id).classList.toggle('open'); }
+
+/* ──────────────────────────────────────────
+   TOAST NOTIFICATIONS
+────────────────────────────────────────── */
+function toast(msg, type='info'){
+  const icons={success:'✓',error:'✕',info:'ℹ'};
+  const w=$('toastWrap');
+  const t=document.createElement('div');
+  t.className=`toast t-${type}`;
+  t.innerHTML=`<span class="toast-icon">${icons[type]||'ℹ'}</span><span class="toast-msg">${msg}</span>`;
+  w.appendChild(t);
+  setTimeout(()=>{ t.style.transition='.4s'; t.style.opacity='0'; t.style.transform='translateX(30px)'; setTimeout(()=>t.remove(),400); }, 3000);
+}
+
+/* ──────────────────────────────────────────
+   CLOSE OVERLAYS ON BACKDROP CLICK
+────────────────────────────────────────── */
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); }));
+
+/* ──────────────────────────────────────────
+   INIT
+────────────────────────────────────────── */
+window.addEventListener('load',()=>{
+  renderAll();
+  setTimeout(()=>{
+    document.querySelectorAll('.bar-fill').forEach(el=>{
+      const w=el.style.width; el.style.width='0';
+      requestAnimationFrame(()=>{ el.style.width=w; });
+    });
+  },300);
+});
+</script>
+</body>
+</html>
